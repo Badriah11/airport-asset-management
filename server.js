@@ -101,7 +101,45 @@ app.post("/api/assets", async (req, res) => {
     });
   }
 });
+app.put("/api/assets/:id", async (req, res) => {
+  const { id } = req.params;
+  const { device, location, status } = req.body;
 
+  if (!device || !location || !status) {
+    return res.status(400).json({
+      error: "All fields are required"
+    });
+  }
+
+  try {
+    const result = await pool.query(
+      `
+      UPDATE assets
+      SET device = $1,
+          location = $2,
+          status = $3
+      WHERE id = $4
+      RETURNING *
+      `,
+      [device, location, status, id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        error: "Asset not found"
+      });
+    }
+
+    res.json(result.rows[0]);
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      error: "Failed to update asset"
+    });
+  }
+});
 app.delete("/api/assets/:id", async (req, res) => {
   const { id } = req.params;
 
