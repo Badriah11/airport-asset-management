@@ -399,10 +399,14 @@ function renderAsset(asset) {
       </span>
     </td>
     <td>
-      <button class="delete" onclick="deleteAsset(this)">
-        Delete
-      </button>
-    </td>
+  <button onclick="editAsset('${asset.id}')">
+    Edit
+  </button>
+
+  <button class="delete" onclick="deleteAsset(this)">
+    Delete
+  </button>
+</td>
   `;
 }
 
@@ -445,6 +449,58 @@ async function addAsset() {
   } catch (error) {
     console.error(error);
     alert("Failed to add asset.");
+  }
+}
+async function editAsset(id) {
+  const row = [...document.querySelectorAll("#assetTable tbody tr")]
+    .find(row => row.cells[0].innerText.trim() === id);
+
+  if (!row) return;
+
+  const currentDevice = row.cells[1].innerText.trim();
+  const currentLocation = row.cells[2].innerText.trim();
+  const currentStatus = row.cells[3].innerText.trim();
+
+  const device = prompt("Device name:", currentDevice);
+  if (device === null) return;
+
+  const location = prompt("Location:", currentLocation);
+  if (location === null) return;
+
+  const status = prompt(
+    "Status: Online, Maintenance, or Offline",
+    currentStatus
+  );
+
+  if (status === null) return;
+
+  try {
+    const response = await fetch(
+      `${API_URL}/${encodeURIComponent(id)}`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          device,
+          location,
+          status
+        })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Unable to update asset");
+    }
+
+    await loadAssets();
+
+    alert("Asset updated successfully");
+
+  } catch (error) {
+    console.error(error);
+    alert("Failed to update asset.");
   }
 }
 
