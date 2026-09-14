@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ب<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -350,6 +350,8 @@
 
 <script>
 
+const API_URL = "https://airport-asset-management.onrender.com/api/assets";
+
 function openModal() {
   document.getElementById("modal").style.display = "flex";
 }
@@ -358,33 +360,42 @@ function closeModal() {
   document.getElementById("modal").style.display = "none";
 }
 
-function addAsset() {
+async function loadAssets() {
+  try {
+    const response = await fetch(API_URL);
+    const assets = await response.json();
 
-  const id = document.getElementById("assetId").value;
-  const device = document.getElementById("device").value;
-  const location = document.getElementById("location").value;
-  const status = document.getElementById("status").value;
+    const table = document
+      .getElementById("assetTable")
+      .getElementsByTagName("tbody")[0];
 
-  if (!id || !device || !location) {
-    alert("Please complete all fields.");
-    return;
+    table.innerHTML = "";
+
+    assets.forEach(asset => {
+      renderAsset(asset);
+    });
+
+    updateStats();
+  } catch (error) {
+    console.error("Failed to load assets:", error);
   }
+}
 
+function renderAsset(asset) {
   const table = document
     .getElementById("assetTable")
     .getElementsByTagName("tbody")[0];
 
   const row = table.insertRow();
-
-  let statusClass = status.toLowerCase();
+  const statusClass = asset.status.toLowerCase();
 
   row.innerHTML = `
-    <td>${id}</td>
-    <td>${device}</td>
-    <td>${location}</td>
+    <td>${asset.id}</td>
+    <td>${asset.device}</td>
+    <td>${asset.location}</td>
     <td>
       <span class="status ${statusClass}">
-        ${status}
+        ${asset.status}
       </span>
     </td>
     <td>
@@ -393,63 +404,127 @@ function addAsset() {
       </button>
     </td>
   `;
-
-  document.getElementById("assetId").value = "";
-  document.getElementById("device").value = "";
-  document.getElementById("location").value = "";
-
-  closeModal();
-  updateStats();
 }
 
-function deleteAsset(button) {
-  button.closest("tr").remove();
-  updateStats();
+async function addAsset() {
+  const id = document.getElementById("assetId").value.trim();
+  const device = document.getElementById("device").value.trim();
+  const location = document.getElementById("location").value.trim();
+  const status = document.getElementById("status").value;
+
+  if (!id || !device || !location || !status) {
+    alert("Please complete all fields.");
+    return;
+  }
+
+  try {
+    const response = await fetch(API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        id,
+        device,
+        location,
+        status
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error("Unable to add asset");
+    }
+
+    document.getElementById("assetId").value = "";
+    document.getElementById("device").value = "";
+    document.getElementById("location").value = "";
+
+    closeModal();
+    await loadAssets();
+
+  } catch (error) {
+    console.error(error);
+    alert("Failed to add asset.");
+  }
+}
+
+async function deleteAsset(button) {
+  const row = button.closest("tr");
+  const id = row.cells[0].innerText;
+
+  try {
+    const response = await fetch(
+      `${API_URL}/${encodeURIComponent(id)}`,
+      {
+        method: "DELETE"
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Unable to delete asset");
+    }
+
+    await loadAssets();
+
+  } catch (error) {
+    console.error(error);
+    alert("Failed to delete asset.");
+  }
 }
 
 function searchAssets() {
-
   const input = document
     .getElementById("search")
     .value
     .toLowerCase();
 
-  const rows = document.querySelectorAll("#assetTable tbody tr");
+  const rows = document.querySelectorAll(
+    "#assetTable tbody tr"
+  );
 
   rows.forEach(row => {
-
     const text = row.innerText.toLowerCase();
 
     row.style.display =
       text.includes(input) ? "" : "none";
-
   });
 }
 
 function updateStats() {
-
-  const rows = document.querySelectorAll("#assetTable tbody tr");
+  const rows = document.querySelectorAll(
+    "#assetTable tbody tr"
+  );
 
   let online = 0;
   let offline = 0;
   let maintenance = 0;
 
   rows.forEach(row => {
-
     const status =
       row.querySelector(".status").innerText;
 
     if (status === "Online") online++;
     if (status === "Offline") offline++;
     if (status === "Maintenance") maintenance++;
-
   });
 
-  document.getElementById("total").innerText = rows.length;
-  document.getElementById("online").innerText = online;
-  document.getElementById("offline").innerText = offline;
-  document.getElementById("maintenance").innerText = maintenance;
+  document.getElementById("total").innerText =
+    rows.length;
+
+  document.getElementById("online").innerText =
+    online;
+
+  document.getElementById("offline").innerText =
+    offline;
+
+  document.getElementById("maintenance").innerText =
+    maintenance;
 }
+
+document.addEventListener(
+  "DOMContentLoaded",
+  loadAssets
+);
 
 </script>
 
