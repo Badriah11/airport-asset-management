@@ -1,4 +1,4 @@
-ب<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -222,10 +222,10 @@
 
 <div class="sidebar">
   <div class="logo">✈ AIR<span>ASSET</span></div>
-  <div class="nav-item active">Dashboard</div>
-  <div class="nav-item">Assets</div>
-  <div class="nav-item">Maintenance</div>
-  <div class="nav-item">Reports</div>
+  <div class="nav-item active" onclick="showSection('dashboard', this)">Dashboard</div>
+<div class="nav-item" onclick="showSection('assets', this)">Assets</div>
+<div class="nav-item" onclick="showSection('maintenance', this)">Maintenance</div>
+<div class="nav-item" onclick="showSection('reports', this)">Reports</div>
 </div>
 
 <div class="main">
@@ -525,7 +525,23 @@ document.addEventListener(
   "DOMContentLoaded",
   loadAssets
 );
+function showSection(section, element) {
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.classList.remove('active');
+  });
 
+  element.classList.add('active');
+
+  if (section === 'dashboard') {
+    location.reload();
+  } else if (section === 'assets') {
+    alert('Assets section');
+  } else if (section === 'maintenance') {
+    alert('Maintenance section');
+  } else if (section === 'reports') {
+    alert('Reports section');
+  }
+}
 </script>
 
 </body>
