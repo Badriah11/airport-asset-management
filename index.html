@@ -526,20 +526,59 @@ document.addEventListener(
   loadAssets
 );
 function showSection(section, element) {
-  document.querySelectorAll('.nav-item').forEach(item => {
-    item.classList.remove('active');
+  document.querySelectorAll(".nav-item").forEach(item => {
+    item.classList.remove("active");
   });
 
-  element.classList.add('active');
+  element.classList.add("active");
 
-  if (section === 'dashboard') {
-    location.reload();
-  } else if (section === 'assets') {
-    alert('Assets section');
-  } else if (section === 'maintenance') {
-    alert('Maintenance section');
-  } else if (section === 'reports') {
-    alert('Reports section');
+  const title = document.querySelector(".header h1");
+  const subtitle = document.querySelector(".header p");
+  const cards = document.querySelector(".cards");
+  const table = document.getElementById("assetTable");
+  const search = document.getElementById("search");
+  const addButton = document.querySelector(".header .btn");
+  const rows = document.querySelectorAll("#assetTable tbody tr");
+
+  // Reset
+  rows.forEach(row => row.style.display = "");
+  table.style.display = "";
+  search.style.display = "";
+  addButton.style.display = "";
+  cards.style.display = "";
+
+  if (section === "dashboard") {
+    title.innerText = "Asset Management Dashboard";
+    subtitle.innerText = "Airport equipment monitoring & management";
+  }
+
+  if (section === "assets") {
+    title.innerText = "All Airport Assets";
+    subtitle.innerText = "View, search, add and manage airport equipment";
+    cards.style.display = "none";
+  }
+
+  if (section === "maintenance") {
+    title.innerText = "Maintenance Assets";
+    subtitle.innerText = "Equipment currently requiring maintenance";
+    cards.style.display = "none";
+    addButton.style.display = "none";
+
+    rows.forEach(row => {
+      const status = row.querySelector(".status").innerText.trim();
+      row.style.display =
+        status === "Maintenance" ? "" : "none";
+    });
+  }
+
+  if (section === "reports") {
+    title.innerText = "Asset Reports";
+    subtitle.innerText =
+      "Overview of airport asset availability and status";
+
+    table.style.display = "none";
+    search.style.display = "none";
+    addButton.style.display = "none";
   }
 }
 </script>
